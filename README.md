@@ -3,7 +3,7 @@
 # GoLang-based Limit Order Book
 
 ## Synopsis
-This project is an experiment to understand and implement a GoLang-based Limit Order Book with concurrent processing of several transactions using GoRoutines. The project aims to implement batch and asynchronous processing through the feature branch development workflow.
+This project is an experiment to understand and implement a GoLang-based Limit Order Book with concurrent processing of several transactions using GoRoutines. It is inspired by the research paper ["Exploiting Concurrency in Domain-Specific Data Structures: A Concurrent Order Book and Workload Generator for Online Trading" (Riviere E., 2016)](https://www.researchgate.net/publication/308086656_Exploiting_Concurrency_in_Domain-Specific_Data_Structures_A_Concurrent_Order_Book_and_Workload_Generator_for_Online_Trading). The project aims to implement batch and asynchronous processing through the feature branch development workflow.
 
 ## Features
 - Order Placement: Users can place Buy or Sell orders specifying the volume and price.
