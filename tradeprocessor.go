@@ -12,12 +12,9 @@ type TradeProcessor struct {
 	waitGroup  *sync.WaitGroup
 }
 
-func NewTradeProcessor() *TradeProcessor {
+func NewTradeProcessor(orderBook *OrderBook) *TradeProcessor {
 	return &TradeProcessor{
-		OrderBook: &OrderBook{
-			BuyOrders:  []*PriceLevel{},
-			SellOrders: []*PriceLevel{},
-		},
+		OrderBook:  orderBook,
 		OrderQueue: make(chan *Order),
 		stop:       make(chan struct{}),
 		waitGroup:  &sync.WaitGroup{},
