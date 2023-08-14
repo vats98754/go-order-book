@@ -2,6 +2,7 @@ package main
 
 import (
 	"container/heap"
+	"fmt"
 	"sync"
 )
 
@@ -14,6 +15,13 @@ type OrderBook struct {
 	BuyOrders  []*PriceLevel
 	SellOrders []*PriceLevel
 	lock       sync.Mutex
+}
+
+func NewOrderBook() *OrderBook {
+	return &OrderBook{
+		BuyOrders:  []*PriceLevel{},
+		SellOrders: []*PriceLevel{},
+	}
 }
 
 func (ob *OrderBook) AddOrder(order *Order) {
@@ -70,4 +78,37 @@ func (ob *OrderBook) getBuyPriceLevel(price float64) *PriceLevel {
 func (ob *OrderBook) getSellPriceLevel(price float64) *PriceLevel {
 	heap.Init(&PriceLevelHeap{ob.SellOrders, LessSell})
 	return heap.Pop(&PriceLevelHeap{ob.SellOrders, LessSell}).(*PriceLevel)
+}
+
+func (ob *OrderBook) Print() {
+	ob.lock.Lock() // Locking for thread safety
+	defer ob.lock.Unlock()
+
+	fmt.Println("\n----- Order Book -----")
+
+	// Print Buy Orders
+	fmt.Println("\nBuy Orders:")
+	if len(ob.BuyOrders) == 0 {
+		fmt.Println("None")
+	} else {
+		for _, priceLevel := range ob.BuyOrders {
+			for _, order := range priceLevel.Orders.data {
+				fmt.Printf("ID: %d | Price: %.2f | Volume: %d\n", order.ID, priceLevel.Price, order.Volume)
+			}
+		}
+	}
+
+	// Print Sell Orders
+	fmt.Println("\nSell Orders:")
+	if len(ob.SellOrders) == 0 {
+		fmt.Println("None")
+	} else {
+		for _, priceLevel := range ob.SellOrders {
+			for _, order := range priceLevel.Orders.data {
+				fmt.Printf("ID: %d | Price: %.2f | Volume: %d\n", order.ID, priceLevel.Price, order.Volume)
+			}
+		}
+	}
+
+	fmt.Println("----------------------\n")
 }
