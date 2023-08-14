@@ -110,5 +110,5 @@ func (ob *OrderBook) Print() {
 		}
 	}
 
-	fmt.Println("----------------------\n")
+	fmt.Println("----------------------")
 }
