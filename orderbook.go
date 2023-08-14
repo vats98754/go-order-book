@@ -1,8 +1,8 @@
 package main
 
 import (
-	"sync"
 	"container/heap"
+	"sync"
 )
 
 type PriceLevel struct {
@@ -43,6 +43,22 @@ func (ob *OrderBook) AddOrder(order *Order) {
 		priceLevel.Orders.Remove(order.CancelID)
 	} else {
 		priceLevel.Orders.Enqueue(order)
+	}
+}
+
+// CancelOrder will remove the order with the given ID from the order book.
+func (ob *OrderBook) CancelOrder(orderId uint64) {
+	ob.lock.Lock()
+	defer ob.lock.Unlock()
+
+	for _, priceLevel := range append(ob.BuyOrders, ob.SellOrders...) {
+		for index, order := range priceLevel.Orders.Items() {
+			if order.ID == orderId {
+				ordersSlice := priceLevel.Orders.Items()
+				priceLevel.Orders = Queue{data: append(ordersSlice[:index], ordersSlice[index+1:]...)}
+				break
+			}
+		}
 	}
 }
 

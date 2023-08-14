@@ -6,10 +6,10 @@ import (
 )
 
 type TradeProcessor struct {
-	OrderBook       *OrderBook
-	OrderQueue      chan *Order
-	stop            chan struct{}
-	waitGroup       *sync.WaitGroup
+	OrderBook  *OrderBook
+	OrderQueue chan *Order
+	stop       chan struct{}
+	waitGroup  *sync.WaitGroup
 }
 
 func NewTradeProcessor() *TradeProcessor {
@@ -63,35 +63,35 @@ func (tp *TradeProcessor) Stop() {
 }
 
 func (tp *TradeProcessor) matchLimitOrders() {
-    for _, sellPriceLevel := range tp.OrderBook.SellOrders {
-        for _, buyPriceLevel := range tp.OrderBook.BuyOrders {
-            if sellPriceLevel.Price <= buyPriceLevel.Price {
-                sellOrder := sellPriceLevel.Orders.Dequeue()
-                buyOrder := buyPriceLevel.Orders.Dequeue()
+	for _, sellPriceLevel := range tp.OrderBook.SellOrders {
+		for _, buyPriceLevel := range tp.OrderBook.BuyOrders {
+			if sellPriceLevel.Price <= buyPriceLevel.Price {
+				sellOrder := sellPriceLevel.Orders.Dequeue()
+				buyOrder := buyPriceLevel.Orders.Dequeue()
 
-                // TODO: match the orders based on their volume, etc.
-                fmt.Printf("Matched sell order %v with buy order %v\n", sellOrder, buyOrder)
-                return
-            }
-        }
-    }
+				// TODO: match the orders based on their volume, etc.
+				fmt.Printf("Matched sell order %v with buy order %v\n", sellOrder, buyOrder)
+				return
+			}
+		}
+	}
 }
 
 func (tp *TradeProcessor) matchMarketOrder(order *Order) {
-    var priceLevels []*PriceLevel
-    if order.Type == Buy {
-        priceLevels = tp.OrderBook.SellOrders
-    } else {
-        priceLevels = tp.OrderBook.BuyOrders
-    }
+	var priceLevels []*PriceLevel
+	if order.Type == Buy {
+		priceLevels = tp.OrderBook.SellOrders
+	} else {
+		priceLevels = tp.OrderBook.BuyOrders
+	}
 
-    for _, priceLevel := range priceLevels {
-        if len(priceLevel.Orders) > 0 {
-            matchedOrder := priceLevel.Orders.Dequeue()
+	for _, priceLevel := range priceLevels {
+		if len(priceLevel.Orders.data) > 0 {
+			matchedOrder := priceLevel.Orders.Dequeue()
 
-            // TODO: match the order based on volume, etc.
-            fmt.Printf("Matched market order %v with limit order %v\n", order, matchedOrder)
-            return
-        }
-    }
+			// TODO: match the order based on volume, etc.
+			fmt.Printf("Matched market order %v with limit order %v\n", order, matchedOrder)
+			return
+		}
+	}
 }
