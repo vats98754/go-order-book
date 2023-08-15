@@ -2,31 +2,35 @@ package main
 
 import "fmt"
 
-// OrderType is an enumeration of the types of orders
+// OrderType is an enum of the types of orders
 type OrderType int
 
 const (
-	// Buy represents a buy order
-	Buy OrderType = iota
-	// Sell represents a sell order
+	Limit OrderType = iota
+	Market
+)
+
+// Side is an enum of the types of sides
+type Side int
+
+const (
+	Buy Side = iota
 	Sell
-	// Cancel represents a cancel order action, but note that it isn't a standalone order type. Instead, the Cancel action would be associated with an existing Buy or Sell order.
 	Cancel
-	// Limit represents a limit order
-	Limit OrderType = iota + 1
 )
 
 // Order represents a single order in the system.
 type Order struct {
-	ID       uint64    // Unique identifier for the order
-	Price    float64   // Price of the order
-	Volume   int       // Volume or quantity of the order
-	Type     OrderType // Type of the order: Buy, Sell or Cancel
-	CancelID uint64    // In case of Cancel action, this field denotes the ID of the order to be canceled.
+	ID        uint64    // Unique identifier for the order
+	Price     float64   // Price of the order
+	Volume    int       // Volume or quantity of the order
+	OrderType OrderType // Type of the order: Market or Limit
+	Side      Side      // Side of the order: Buy, Sell or Cancel
+	CancelID  uint64    // In case of Cancel action, this field denotes the ID of the order to be canceled.
 }
 
 func (o Order) String() string {
-	switch o.Type {
+	switch o.Side {
 	case Buy:
 		return fmt.Sprintf("Buy Order - ID: %v, Price: %v, Volume: %v", o.ID, o.Price, o.Volume)
 	case Sell:
