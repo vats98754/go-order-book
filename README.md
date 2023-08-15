@@ -1,4 +1,4 @@
-# GoLang-based Limit Order Book
+# Concurrent Limit Order Book (with GoRoutines)
 
 ## Synopsis
 
