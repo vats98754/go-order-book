@@ -2,7 +2,8 @@ package main
 
 import (
 	"fmt"
-	"sync"
+	"math/rand"
+	"time"
 )
 
 func main() {
@@ -10,74 +11,78 @@ func main() {
 	ob := NewOrderBook()
 	tp := NewTradeProcessor(ob)
 
-	// Start the TradeProcessor in a goroutine
-	go tp.ProcessTrades()
+	// Add initial batch of orders
+	batch1 := []*Order{
+		{ID: 1, Price: 100.50, Volume: 10, OrderType: Limit, Side: Buy},
+		{ID: 2, Price: 101.00, Volume: 5, OrderType: Limit, Side: Buy},
+		{ID: 3, Price: 99.00, Volume: 8, OrderType: Limit, Side: Sell},
+		{ID: 4, Price: 98.50, Volume: 6, OrderType: Limit, Side: Sell},
+	}
 
-	// Use WaitGroup to wait for all goroutines
-	var wg sync.WaitGroup
+	fmt.Println("Adding initial batch of orders...")
+	for _, order := range batch1 {
+		ob.AddOrder(order)
+	}
 
-	// Concurrently place a couple of Buy orders
-	wg.Add(2)
-	go func() {
-		defer wg.Done()
-		buyOrder1 := &Order{ID: 1, Price: 100.50, Volume: 10, Type: Buy}
-		ob.AddOrder(buyOrder1)
-	}()
-	go func() {
-		defer wg.Done()
-		buyOrder2 := &Order{ID: 2, Price: 101.00, Volume: 5, Type: Buy}
-		ob.AddOrder(buyOrder2)
-	}()
-	wg.Wait() // Wait for Buy orders to be processed
-
-	// Print order book after buy orders
-	fmt.Println("Order Book after placing Buy Orders:")
+	// Display initial state
+	fmt.Println("Initial State:")
 	ob.Print()
 
-	// Concurrently place a couple of Sell orders
-	wg.Add(2)
-	go func() {
-		defer wg.Done()
-		sellOrder1 := &Order{ID: 3, Price: 101.50, Volume: 7, Type: Sell}
-		ob.AddOrder(sellOrder1)
-	}()
-	go func() {
-		defer wg.Done()
-		sellOrder2 := &Order{ID: 4, Price: 101.00, Volume: 4, Type: Sell}
-		ob.AddOrder(sellOrder2)
-	}()
-	wg.Wait() // Wait for Sell orders to be processed
+	// Process orders
+	fmt.Println("\nProcessing Orders...")
+	tp.Start()
 
-	// ... [rest of the previous demo code]
+	// Simulate adding more orders over time to demonstrate concurrent order processing
+	go func() {
+		time.Sleep(2 * time.Second)
 
-	// Concurrently add more orders to further demonstrate the concurrent nature
-	wg.Add(4)
-	go func() {
-		defer wg.Done()
-		order := &Order{ID: 9, Price: 99.50, Volume: 8, Type: Buy}
-		ob.AddOrder(order)
-	}()
-	go func() {
-		defer wg.Done()
-		order := &Order{ID: 10, Price: 102.00, Volume: 9, Type: Sell}
-		ob.AddOrder(order)
-	}()
-	go func() {
-		defer wg.Done()
-		order := &Order{ID: 11, Price: 100.75, Volume: 6, Type: Buy}
-		ob.AddOrder(order)
-	}()
-	go func() {
-		defer wg.Done()
-		order := &Order{ID: 12, Price: 101.25, Volume: 4, Type: Sell}
-		ob.AddOrder(order)
-	}()
-	wg.Wait() // Wait for all concurrent order additions to finish
+		batch2 := []*Order{
+			{ID: 5, Price: 100.75, Volume: 7, OrderType: Limit, Side: Buy},
+			{ID: 6, Price: 99.50, Volume: 3, OrderType: Limit, Side: Sell},
+		}
 
-	// Print the final state of order book
-	fmt.Println("\nOrder Book after all concurrent operations:")
-	ob.Print()
+		fmt.Println("\nAdding second batch of orders...")
+		for _, order := range batch2 {
+			ob.AddOrder(order)
+			time.Sleep(500 * time.Millisecond) // Space out order additions a bit
+		}
+	}()
 
-	// Shutdown the TradeProcessor to stop processing trades
+	go func() {
+		time.Sleep(5 * time.Second)
+
+		batch3 := []*Order{
+			{ID: 7, Price: 100.00, Volume: 2, OrderType: Market, Side: Buy},
+			{ID: 8, Price: 0, Volume: 4, OrderType: Market, Side: Sell}, // Price is ignored for market orders
+		}
+
+		fmt.Println("\nAdding third batch of orders (market orders)...")
+		for _, order := range batch3 {
+			ob.AddOrder(order)
+			time.Sleep(500 * time.Millisecond) // Space out order additions a bit
+		}
+	}()
+
+	// Allow demo to run for a while
+	time.Sleep(10 * time.Second)
+
+	// Stop the trade processor after the demo
 	tp.Stop()
+
+	// Print final state
+	fmt.Println("\nFinal State:")
+	ob.Print()
+}
+
+func randomOrder() *Order {
+	orderTypes := []OrderType{Limit, Market}
+	sides := []Side{Buy, Sell}
+
+	return &Order{
+		ID:        uint64(rand.Intn(10000)),
+		Price:     95 + rand.Float64()*10,
+		Volume:    rand.Intn(10) + 1,
+		OrderType: orderTypes[rand.Intn(len(orderTypes))],
+		Side:      sides[rand.Intn(len(sides))],
+	}
 }
