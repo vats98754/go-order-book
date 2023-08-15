@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"sync"
+	"time"
 )
 
 type TradeProcessor struct {
@@ -10,6 +11,7 @@ type TradeProcessor struct {
 	OrderQueue chan *Order
 	stop       chan struct{}
 	waitGroup  *sync.WaitGroup
+	active     bool
 }
 
 func NewTradeProcessor(orderBook *OrderBook) *TradeProcessor {
@@ -18,11 +20,20 @@ func NewTradeProcessor(orderBook *OrderBook) *TradeProcessor {
 		OrderQueue: make(chan *Order),
 		stop:       make(chan struct{}),
 		waitGroup:  &sync.WaitGroup{},
+		active:     false,
 	}
 }
 
 func (tp *TradeProcessor) AddOrder(order *Order) {
 	tp.OrderQueue <- order
+}
+
+func (tp *TradeProcessor) Start() {
+	tp.active = true
+	for tp.active {
+		tp.ProcessTrades()
+		time.Sleep(100 * time.Millisecond) // Adjust this delay as per your needs
+	}
 }
 
 func (tp *TradeProcessor) ProcessTrades() {
@@ -40,7 +51,7 @@ func (tp *TradeProcessor) ProcessTrades() {
 
 				tp.OrderBook.AddOrder(order)
 
-				if order.Type != Limit {
+				if order.OrderType != Limit {
 					tp.matchMarketOrder(order)
 				} else {
 					tp.matchLimitOrders()
@@ -56,6 +67,7 @@ func (tp *TradeProcessor) ProcessTrades() {
 func (tp *TradeProcessor) Stop() {
 	close(tp.stop)
 	tp.waitGroup.Wait()
+	tp.active = false
 	close(tp.OrderQueue)
 }
 
@@ -76,7 +88,7 @@ func (tp *TradeProcessor) matchLimitOrders() {
 
 func (tp *TradeProcessor) matchMarketOrder(order *Order) {
 	var priceLevels []*PriceLevel
-	if order.Type == Buy {
+	if order.Side == Buy {
 		priceLevels = tp.OrderBook.SellOrders
 	} else {
 		priceLevels = tp.OrderBook.BuyOrders
