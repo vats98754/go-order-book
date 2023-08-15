@@ -30,7 +30,7 @@ func (ob *OrderBook) AddOrder(order *Order) {
 
 	var priceLevel *PriceLevel
 	var orders *[]*PriceLevel
-	if order.Type == Buy {
+	if order.Side == Buy {
 		priceLevel = ob.getBuyPriceLevel(order.Price)
 		orders = &ob.BuyOrders
 	} else {
@@ -47,7 +47,7 @@ func (ob *OrderBook) AddOrder(order *Order) {
 		*orders = append(*orders, priceLevel)
 	}
 
-	if order.Type == Cancel {
+	if order.Side == Cancel {
 		priceLevel.Orders.Remove(order.CancelID)
 	} else {
 		priceLevel.Orders.Enqueue(order)
